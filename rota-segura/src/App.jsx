@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './pages/Login'; // Ajuste o caminho conforme onde seu Login.jsx está salvo
+import Login from './pages/Login'; 
 
 function App() {
   return (
