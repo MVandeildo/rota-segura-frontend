@@ -1,32 +1,36 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './pages/Login'; 
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Login from './pages/Login';
+import Cadastro from './pages/Cadastro';
+import './App.css';
 
-function App() {
-  return (
-    <Router>
-      <Routes>
-        {/* Rota da Tela de Login */}
-        <Route path="/login" element={<Login />} />
-
-        {/* Exemplo de Rota para o Dashboard (Área Principal) */}
-        <Route 
-          path="/dashboard" 
-          element={
-            <div style={{ padding: '2rem', textAlign: 'center' }}>
-              <h1>Bem-vindo à Área Principal - RotaSegura 🚐🏫</h1>
-              <p>Você está autenticado com sucesso!</p>
-            </div>
-          } 
-        />
-
-        {/* Redireciona a raiz "/" diretamente para o login */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        
-        {/* Rota coringa para páginas não encontradas */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </Router>
-  );
+function Dashboard() {
+    return (
+        <div style={{ padding: '2rem', textAlign: 'center' }}>
+            <h1>Área Principal - RotaSegura 🚍</h1>
+        </div>
+    );
 }
 
-export default App;
+export default function App() {
+    return (
+        <BrowserRouter>
+            <Routes>
+                {/* Redireciona a raiz "/" diretamente para a tela de Login */}
+                <Route path="/" element={<Navigate to="/login" replace />} />
+                
+                {/* Tela de Login */}
+                <Route path="/login" element={<Login />} />
+                
+                {/* Tela de Cadastro (acessada pelo botão Create account do login) */}
+                <Route path="/cadastro" element={<Cadastro />} />
+                
+                {/* Área protegida / Dashboard após logar */}
+                <Route path="/dashboard" element={<Dashboard />} />
+                
+                {/* Qualquer rota inválida redireciona para o login */}
+                <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+        </BrowserRouter>
+    );
+}
