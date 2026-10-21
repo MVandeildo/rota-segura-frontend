@@ -9,6 +9,7 @@ export default function Login() {
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
     const [mostrarSenha, setMostrarSenha] = useState(false);
+    const [lembrarMe, setLembrarMe] = useState(false);
 
     const [erro, setErro] = useState('');
     const [carregando, setCarregando] = useState(false);
@@ -42,7 +43,9 @@ export default function Login() {
                 senha
             );
 
-            if (!data?.accessToken) {
+            const token = data?.accessToken || data?.token;
+
+            if (!token) {
                 setErro(
                     'O login não pôde ser concluído. ' +
                     'Verifique a resposta do servidor.'
@@ -52,7 +55,7 @@ export default function Login() {
 
             localStorage.setItem(
                 '@RotaSegura:token',
-                data.accessToken
+                token
             );
 
             navigate('/dashboard', { replace: true });
@@ -85,64 +88,60 @@ export default function Login() {
 
     return (
         <div className="login-split-container">
+            {/* Painel Esquerdo - Branding, Slogan e Ilustração do protótipo[cite: 1] */}
             <div className="login-left-pane">
                 <div className="brand-header">
-                    <div className="logo-shield">🛡️</div>
+                    <div className="logo-shield" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+                            <path d="M12 2L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-3zm0 2.18l7 2.33v4.99c0 4.67-3.13 9.01-7 10.18-3.87-1.17-7-5.51-7-10.18V6.51l7-2.33z"/>
+                        </svg>
+                    </div>
                     <span className="brand-title">RotaSegura</span>
                 </div>
 
                 <div className="hero-content">
                     <h1>
-                        Rotas seguras.
-                        <br />
+                        Rotas seguras. <br />
                         Alunos protegidos.
                     </h1>
-
                     <p>
-                        Gerencie o transporte escolar com mais
-                        segurança, organização e tranquilidade
-                        para todos.
+                        Gerencie o transporte escolar com mais segurança, organização e tranquilidade para todos.
                     </p>
                 </div>
 
                 <div className="hero-illustration-box">
                     <div className="route-map-mock">
-                        <div className="pin school">🏫</div>
+                        <div className="pin school" title="Escola">🏫</div>
                         <div className="route-line"></div>
-                        <div className="van-icon">🚐</div>
-                        <div className="pin home">🏠</div>
+                        <div className="van-icon" title="Van escolar">🚐</div>
+                        <div className="pin home" title="Casa">🏠</div>
                     </div>
                 </div>
 
                 <div className="security-footer-badge">
-                    <div className="lock-icon">🔒</div>
-
+                    <div className="lock-icon" aria-hidden="true">🔒</div>
                     <div className="security-text">
-                        <strong>
-                            Seu acesso é protegido com tecnologia
-                            segura e confiável.
-                        </strong>
-                        <span>
-                            Seus dados e informações estão sempre
-                            protegidos.
-                        </span>
+                        <strong>Seu acesso é protegido com tecnologia segura e confiável.</strong>
+                        <span>Seus dados e informações estão sempre protegidos.</span>
                     </div>
                 </div>
             </div>
 
+            {/* Painel Direito - Card de Login fiel ao protótipo[cite: 1] */}
             <div className="login-right-pane">
                 <div className="login-card-modern">
                     <div className="card-top-brand">
-                        <div className="logo-shield-small">🛡️</div>
+                        <div className="logo-shield-small" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                                <path d="M12 2L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-3zm0 2.18l7 2.33v4.99c0 4.67-3.13 9.01-7 10.18-3.87-1.17-7-5.51-7-10.18V6.51l7-2.33z"/>
+                            </svg>
+                        </div>
                         <h2>RotaSegura</h2>
                     </div>
 
                     <div className="card-titles">
                         <h3>Acesse sua conta</h3>
-                        <p>
-                            Entre com seu e-mail e senha para
-                            acessar o sistema.
-                        </p>
+                        <p>Entre com seu email e senha para acessar o sistema.</p>
                     </div>
 
                     {erro && (
@@ -153,13 +152,9 @@ export default function Login() {
 
                     <form onSubmit={handleSubmit} noValidate>
                         <div className="input-field-group">
-                            <label htmlFor="email">E-mail</label>
-
+                            <label htmlFor="email">Email</label>
                             <div className="input-with-icon">
-                                <span className="field-icon" aria-hidden="true">
-                                    ✉️
-                                </span>
-
+                                <span className="field-icon" aria-hidden="true">✉️</span>
                                 <input
                                     id="email"
                                     name="email"
@@ -167,7 +162,10 @@ export default function Login() {
                                     placeholder="seu@email.com"
                                     autoComplete="email"
                                     value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    onChange={(e) => {
+                                        setEmail(e.target.value);
+                                        if (erro) setErro('');
+                                    }}
                                     disabled={carregando}
                                     required
                                 />
@@ -176,35 +174,27 @@ export default function Login() {
 
                         <div className="input-field-group">
                             <label htmlFor="senha">Senha</label>
-
                             <div className="input-with-icon">
-                                <span className="field-icon" aria-hidden="true">
-                                    🔒
-                                </span>
-
+                                <span className="field-icon" aria-hidden="true">🔒</span>
                                 <input
                                     id="senha"
                                     name="senha"
                                     type={mostrarSenha ? 'text' : 'password'}
-                                    placeholder="Digite sua senha"
+                                    placeholder="••••••••••••"
                                     autoComplete="current-password"
                                     value={senha}
-                                    onChange={(e) => setSenha(e.target.value)}
+                                    onChange={(e) => {
+                                        setSenha(e.target.value);
+                                        if (erro) setErro('');
+                                    }}
                                     disabled={carregando}
                                     required
                                 />
-
                                 <button
                                     type="button"
                                     className="toggle-password-btn"
-                                    onClick={() =>
-                                        setMostrarSenha((anterior) => !anterior)
-                                    }
-                                    aria-label={
-                                        mostrarSenha
-                                            ? 'Ocultar senha'
-                                            : 'Mostrar senha'
-                                    }
+                                    onClick={() => setMostrarSenha((anterior) => !anterior)}
+                                    aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
                                     aria-pressed={mostrarSenha}
                                     disabled={carregando}
                                 >
@@ -214,10 +204,17 @@ export default function Login() {
                         </div>
 
                         <div className="form-extra-options">
-                            <Link
-                                to="/recuperar-senha"
-                                className="forgot-link"
-                            >
+                            <label className="checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    checked={lembrarMe}
+                                    onChange={(e) => setLembrarMe(e.target.checked)}
+                                    disabled={carregando}
+                                />
+                                <span>Lembrar-me</span>
+                            </label>
+
+                            <Link to="/recuperar-senha" className="forgot-link">
                                 Esqueci minha senha
                             </Link>
                         </div>
@@ -227,17 +224,12 @@ export default function Login() {
                             className="btn-login-primary"
                             disabled={carregando}
                         >
-                            {carregando ? 'Entrando...' : 'Entrar'}
+                            {carregando ? 'Entrando...' : 'Log in'}
                         </button>
                     </form>
 
-                    <div className="divider-or">ou</div>
-
-                    <Link
-                        to="/cadastro"
-                        className="btn-create-account-outline"
-                    >
-                        Criar uma conta
+                    <Link to="/cadastro" className="btn-create-account-outline">
+                        Create account
                     </Link>
                 </div>
             </div>
