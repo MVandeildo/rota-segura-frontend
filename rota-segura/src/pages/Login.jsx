@@ -43,7 +43,7 @@ export default function Login() {
                 senha
             );
 
-            const token = data?.accessToken || data?.token;
+            const token = data?.accesstoken || data?.accessToken || data?.token;
 
             if (!token) {
                 setErro(
