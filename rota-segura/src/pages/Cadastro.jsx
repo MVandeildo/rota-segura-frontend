@@ -6,14 +6,12 @@ import './Login.css';
 export default function Cadastro() {
     const navigate = useNavigate();
 
-    // Estados dos campos do cadastro
     const [nome, setNome] = useState('');
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
     const [confirmarSenha, setConfirmarSenha] = useState('');
     const [mostrarSenha, setMostrarSenha] = useState(false);
 
-    // Estados de feedback
     const [erro, setErro] = useState('');
     const [sucesso, setSucesso] = useState('');
     const [carregando, setCarregando] = useState(false);
@@ -103,7 +101,6 @@ export default function Cadastro() {
 
     return (
         <div className="login-split-container">
-            {/* Painel Esquerdo - Branding e Slogan */}
             <div className="login-left-pane">
                 <div className="brand-header">
                     <div className="logo-shield" aria-hidden="true">
@@ -142,7 +139,6 @@ export default function Cadastro() {
                 </div>
             </div>
 
-            {/* Painel Direito - Formulário de Cadastro */}
             <div className="login-right-pane">
                 <div className="login-card-modern">
                     <div className="card-top-brand">
@@ -159,7 +155,6 @@ export default function Cadastro() {
                         <p>Preencha os dados abaixo para cadastrar-se no sistema.</p>
                     </div>
 
-                    {/* Alertas de Sucesso ou Erro */}
                     {sucesso && (
                         <div className="alert-success" style={{ backgroundColor: '#dcfce7', color: '#166534', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.25rem', fontSize: '0.85rem', border: '1px solid #bbf7d0' }}>
                             {sucesso}
