@@ -53,10 +53,10 @@ export default function Login() {
                 return;
             }
 
-            localStorage.setItem(
-                '@RotaSegura:token',
-                token
-            );
+            localStorage.setItem('@RotaSegura:token', token);
+
+            const nomeUsuario = data?.user?.nome || data?.user?.name || data?.nome || 'Usuário';
+            localStorage.setItem('@RotaSegura:userName', nomeUsuario);
 
             navigate('/dashboard', { replace: true });
 
@@ -88,7 +88,7 @@ export default function Login() {
 
     return (
         <div className="login-split-container">
-            {/* Painel Esquerdo - Branding, Slogan e Ilustração do protótipo[cite: 1] */}
+            {/* Painel Esquerdo - Branding, Slogan e Ilustração do protótipo */}
             <div className="login-left-pane">
                 <div className="brand-header">
                     <div className="logo-shield" aria-hidden="true">
@@ -127,7 +127,7 @@ export default function Login() {
                 </div>
             </div>
 
-            {/* Painel Direito - Card de Login fiel ao protótipo[cite: 1] */}
+            {/* Painel Direito - Card de Login fiel ao protótipo */}
             <div className="login-right-pane">
                 <div className="login-card-modern">
                     <div className="card-top-brand">
