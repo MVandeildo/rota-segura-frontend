@@ -6,6 +6,8 @@ import RecuperarSenha from './pages/RecuperarSenha';
 import NovaSenha from './pages/NovaSenha';
 import Dashboard from './pages/Dashboard';
 import Estudantes from './pages/Estudantes';
+import Historico from './pages/Historico';
+import Suporte from './pages/Suporte';
 import './App.css';
 
 export default function App() {
@@ -19,6 +21,11 @@ export default function App() {
                 <Route path="/redefinir-senha" element={<NovaSenha />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/estudantes" element={<Estudantes />} />
+                
+                {}
+                <Route path="/historico" element={<Historico />} />
+                <Route path="/suporte" element={<Suporte />} />
+
                 <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
         </BrowserRouter>
