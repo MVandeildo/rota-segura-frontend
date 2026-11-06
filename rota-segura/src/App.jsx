@@ -14,19 +14,17 @@ export default function App() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/" element={<Navigate to="/login" replace />} />
+                {}
+                <Route path="/" element={<Login />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/cadastro" element={<Cadastro />} />
                 <Route path="/recuperar-senha" element={<RecuperarSenha />} />
                 <Route path="/redefinir-senha" element={<NovaSenha />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/estudantes" element={<Estudantes />} />
-                
-                {}
                 <Route path="/historico" element={<Historico />} />
                 <Route path="/suporte" element={<Suporte />} />
-
-                <Route path="*" element={<Navigate to="/login" replace />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </BrowserRouter>
     );
