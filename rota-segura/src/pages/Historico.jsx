@@ -18,22 +18,52 @@ export default function Historico() {
             setFullName(savedName);
             setUserName(savedName.trim().split(' ')[0]);
         }
-
-        carregarHistorico();
     }, []);
+
+    useEffect(() => {
+        carregarHistorico();
+    }, [filtroPeriodo]);
+
+    const calcularDatasFiltro = (periodo) => {
+        const hoje = new Date();
+        const formatarData = (d) => d.toISOString().split('T')[0];
+
+        if (periodo === 'semana') {
+            const umaSemanaAtras = new Date();
+            umaSemanaAtras.setDate(hoje.getDate() - 7);
+            return {
+                data_inicio: formatarData(umaSemanaAtras),
+                data_fim: formatarData(hoje)
+            };
+        }
+
+        if (periodo === 'mes') {
+            const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+            return {
+                data_inicio: formatarData(primeiroDiaMes),
+                data_fim: formatarData(hoje)
+            };
+        }
+
+        return { data_inicio: undefined, data_fim: undefined };
+    };
 
     const carregarHistorico = async () => {
         try {
             setCarregando(true);
-            const response = await api.get('/api/historico');
-            setHistoricoViagens(response.data?.historico || response.data || []);
+            const { data_inicio, data_fim } = calcularDatasFiltro(filtroPeriodo);
+
+            const params = {};
+            if (data_inicio) params.data_inicio = data_inicio;
+            if (data_fim) params.data_fim = data_fim;
+
+            const response = await api.get('/api/relatorios/auditoria', { params });
+            
+            const registros = response.data?.registros || response.data || [];
+            setHistoricoViagens(registros);
         } catch (error) {
             console.error('Erro ao carregar o histórico de viagens:', error);
-            setHistoricoViagens([
-                { id: 1, aluno: 'Joãozinho da Silva', data: '2026-10-12', embarque: '07:15', desembarque: '12:30', status: 'Concluído', van: 'Van 23' },
-                { id: 2, aluno: 'Carlos Alberto', data: '2026-10-11', embarque: '07:18', desembarque: '12:32', status: 'Concluído', van: 'Van 23' },
-                { id: 3, aluno: 'Lucas Silva', data: '2026-10-10', embarque: '07:12', desembarque: '12:28', status: 'Concluído', van: 'Van 23' }
-            ]);
+            setHistoricoViagens([]);
         } finally {
             setCarregando(false);
         }
@@ -48,6 +78,12 @@ export default function Historico() {
         return name.substring(0, 2).toUpperCase();
     };
 
+    const formatarDataHora = (dataString) => {
+        if (!dataString) return '-';
+        const data = new Date(dataString);
+        return isNaN(data) ? dataString : data.toLocaleString('pt-BR');
+    };
+
     const handleLogout = () => {
         localStorage.removeItem('@RotaSegura:token');
         localStorage.removeItem('@RotaSegura:userName');
@@ -57,7 +93,6 @@ export default function Historico() {
 
     return (
         <div className="dashboard-container">
-            {}
             <aside className="dashboard-sidebar">
                 <div className="sidebar-logo">
                     <h2>RotaSegura</h2>
@@ -99,7 +134,6 @@ export default function Historico() {
                 </nav>
             </aside>
 
-            {}
             <main className="dashboard-main">
                 <header className="dashboard-header">
                     <div className="welcome-text">
@@ -111,7 +145,6 @@ export default function Historico() {
                     </div>
                 </header>
 
-                {}
                 <div className="card" style={{ marginTop: '20px', padding: '20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
                         <h3>Registros Anteriores</h3>
@@ -139,21 +172,17 @@ export default function Historico() {
                                 <thead>
                                     <tr style={{ borderBottom: '2px solid #eee', color: '#555', fontSize: '14px' }}>
                                         <th style={{ padding: '12px' }}>Estudante</th>
-                                        <th style={{ padding: '12px' }}>Data</th>
-                                        <th style={{ padding: '12px' }}>Embarque</th>
-                                        <th style={{ padding: '12px' }}>Desembarque</th>
-                                        <th style={{ padding: '12px' }}>Veículo</th>
-                                        <th style={{ padding: '12px' }}>Status</th>
+                                        <th style={{ padding: '12px' }}>Data e Hora</th>
+                                        <th style={{ padding: '12px' }}>Tipo de Evento</th>
+                                        <th style={{ padding: '12px' }}>Rota</th>
+                                        <th style={{ padding: '12px' }}>Motorista</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {historicoViagens.map((item) => (
-                                        <tr key={item.id} style={{ borderBottom: '1px solid #f1f1f1', fontSize: '14px' }}>
-                                            <td style={{ padding: '12px', fontWeight: '500' }}>{item.aluno}</td>
-                                            <td style={{ padding: '12px' }}>{item.data}</td>
-                                            <td style={{ padding: '12px' }}>{item.embarque}</td>
-                                            <td style={{ padding: '12px' }}>{item.desembarque}</td>
-                                            <td style={{ padding: '12px' }}>{item.van}</td>
+                                        <tr key={item.presenca_id || item.id} style={{ borderBottom: '1px solid #f1f1f1', fontSize: '14px' }}>
+                                            <td style={{ padding: '12px', fontWeight: '500' }}>{item.aluno_nome}</td>
+                                            <td style={{ padding: '12px' }}>{formatarDataHora(item.registrado_em)}</td>
                                             <td style={{ padding: '12px' }}>
                                                 <span style={{ 
                                                     background: '#d1e7dd', 
@@ -163,9 +192,11 @@ export default function Historico() {
                                                     fontSize: '12px', 
                                                     fontWeight: 'bold' 
                                                 }}>
-                                                    {item.status}
+                                                    {item.tipo}
                                                 </span>
                                             </td>
+                                            <td style={{ padding: '12px' }}>{item.rota_nome}</td>
+                                            <td style={{ padding: '12px' }}>{item.motorista_nome}</td>
                                         </tr>
                                     ))}
                                 </tbody>
