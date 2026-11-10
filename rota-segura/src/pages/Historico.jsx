@@ -91,6 +91,34 @@ export default function Historico() {
         navigate('/', { replace: true });
     };
 
+    const baixarCsv = async () => {
+        try {
+            const token = localStorage.getItem('@RotaSegura:token'); 
+            
+            const resposta = await api.get('/api/relatorios/auditoria?formato=csv', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                responseType: 'blob'
+            });
+
+            const blob = new Blob([resposta.data], { type: 'text/csv;charset=utf-8;' });
+            const url = window.URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'historico-transporte.csv';
+            document.body.appendChild(a);
+            a.click();
+            
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Erro no download:', error);
+            alert('Não foi possível baixar o relatório CSV.');
+        }
+    };
+
     return (
         <div className="dashboard-container">
             <aside className="dashboard-sidebar">
@@ -147,18 +175,36 @@ export default function Historico() {
 
                 <div className="card" style={{ marginTop: '20px', padding: '20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
-                        <h3>Registros Anteriores</h3>
-                        <div>
-                            <label style={{ fontSize: '13px', marginRight: '8px', color: '#666' }}>Filtrar período:</label>
-                            <select 
-                                value={filtroPeriodo} 
-                                onChange={(e) => setFiltroPeriodo(e.target.value)}
-                                style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #ccc', background: '#fff' }}
+                        <h3 style={{ margin: 0 }}>Registros Anteriores</h3>
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
+                            <button
+                                onClick={baixarCsv}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: '8px',
+                                    backgroundColor: '#198754', hover: '#157347', color: 'white',
+                                    padding: '8px 16px', borderRadius: '6px', fontSize: '14px',
+                                    fontWeight: '500', border: 'none', cursor: 'pointer'
+                                }}
                             >
-                                <option value="todos">Todos os registros</option>
-                                <option value="semana">Última semana</option>
-                                <option value="mes">Este mês</option>
-                            </select>
+                                <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                Baixar CSV
+                            </button>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <label style={{ fontSize: '13px', color: '#666' }}>Filtrar período:</label>
+                                <select 
+                                    value={filtroPeriodo} 
+                                    onChange={(e) => setFiltroPeriodo(e.target.value)}
+                                    style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #ccc', background: '#fff' }}
+                                >
+                                    <option value="todos">Todos os registros</option>
+                                    <option value="semana">Última semana</option>
+                                    <option value="mes">Este mês</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -196,7 +242,7 @@ export default function Historico() {
                                                 </span>
                                             </td>
                                             <td style={{ padding: '12px' }}>{item.rota_nome}</td>
-                                            <td style={{ padding: '12px' }}>{item.motorista_nome}</td>
+                                            <td style={{ padding: '12px' }}>{item.motorista_nome || 'Não atribuído'}</td>
                                         </tr>
                                     ))}
                                 </tbody>
