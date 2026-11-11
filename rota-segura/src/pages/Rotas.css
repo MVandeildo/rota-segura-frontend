@@ -1,0 +1,860 @@
+.rotas-main {
+    max-width: 1440px;
+}
+
+.rotas-header {
+    align-items: flex-start;
+}
+
+.rotas-header .welcome-text h1 {
+    margin: 0 0 8px;
+}
+
+.rotas-role {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #eaf1ff;
+    color: #1e3a8a;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+.rotas-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.rotas-summary-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 84px;
+    padding: 16px 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+}
+
+.rotas-summary-icon {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border-radius: 12px;
+    background: #eff6ff;
+    font-size: 1.35rem;
+}
+
+.rotas-summary-card div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.rotas-summary-card strong {
+    color: #0f172a;
+    font-size: 1.35rem;
+    line-height: 1.2;
+}
+
+.rotas-summary-card div span {
+    color: #64748b;
+    font-size: 0.82rem;
+}
+
+.rotas-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.rotas-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: min(100%, 480px);
+    height: 44px;
+    padding: 0 14px;
+    border: 1px solid #dbe3ee;
+    border-radius: 9px;
+    background: #fff;
+    color: #64748b;
+}
+
+.rotas-search > span {
+    font-size: 1.4rem;
+    line-height: 1;
+}
+
+.rotas-search input {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #0f172a;
+    font: inherit;
+    font-size: 0.88rem;
+}
+
+.rotas-toolbar-actions,
+.rota-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rotas-toolbar-actions select {
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid #dbe3ee;
+    border-radius: 8px;
+    background: #fff;
+    color: #334155;
+    font: inherit;
+    font-size: 0.85rem;
+}
+
+.rotas-primary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 8px;
+    background: #2563eb;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 700;
+    transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.rotas-primary-button:hover {
+    transform: translateY(-1px);
+    background: #1d4ed8;
+}
+
+.rotas-list {
+    display: grid;
+    gap: 16px;
+}
+
+.rota-card {
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 7px rgba(15, 23, 42, 0.035);
+}
+
+.rota-card-inativa {
+    opacity: 0.82;
+}
+
+.rota-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px 22px 16px;
+    border-bottom: 1px solid #edf1f6;
+}
+
+.rota-heading {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    min-width: 0;
+}
+
+.rota-bus-icon {
+    display: grid;
+    flex: 0 0 46px;
+    width: 46px;
+    height: 46px;
+    place-items: center;
+    border-radius: 12px;
+    background: #eff6ff;
+    font-size: 1.35rem;
+}
+
+.rota-title-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.rota-title-line h2 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.rota-heading p {
+    margin-top: 5px;
+    color: #64748b;
+    font-size: 0.82rem;
+}
+
+.rota-status {
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.status-ativa {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.status-inativa {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.rota-actions button,
+.rota-cancel-button {
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid #dbe3ee;
+    border-radius: 7px;
+    background: #fff;
+    color: #334155;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.rota-actions button:hover,
+.rota-cancel-button:hover {
+    background: #f8fafc;
+}
+
+.rota-actions .status-button-disable {
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+.rota-actions .status-button-enable {
+    border-color: #bbf7d0;
+    color: #15803d;
+}
+
+.rota-driver {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 14px 22px;
+    border-bottom: 1px solid #edf1f6;
+}
+
+.rota-driver > span {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border-radius: 50%;
+    background: #f1f5f9;
+}
+
+.rota-driver div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.rota-driver div span,
+.rota-stop-times small {
+    color: #64748b;
+    font-size: 0.72rem;
+}
+
+.rota-driver strong {
+    color: #334155;
+    font-size: 0.84rem;
+}
+
+.rota-itinerary {
+    padding: 16px 22px 20px;
+}
+
+.rota-itinerary-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.rota-itinerary-title h3,
+.rotas-stops-header h3 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 0.9rem;
+}
+
+.rota-itinerary-title > span {
+    color: #94a3b8;
+    font-size: 0.76rem;
+}
+
+.rota-itinerary ol {
+    position: relative;
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.rota-itinerary li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 30px minmax(130px, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    min-height: 58px;
+}
+
+.rota-itinerary li:not(:last-child)::after {
+    position: absolute;
+    top: 37px;
+    bottom: -3px;
+    left: 13px;
+    width: 2px;
+    background: #dbeafe;
+    content: '';
+}
+
+.rota-stop-marker {
+    z-index: 1;
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    border: 2px solid #bfdbfe;
+    border-radius: 50%;
+    background: #fff;
+    color: #2563eb;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.rota-stop-final {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+}
+
+.rota-stop-location {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.rota-stop-location strong {
+    overflow: hidden;
+    color: #334155;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rota-stop-location span {
+    color: #94a3b8;
+    font-size: 0.7rem;
+}
+
+.rota-stop-times {
+    display: flex;
+    gap: 22px;
+}
+
+.rota-stop-times > span {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.rota-stop-times strong {
+    color: #334155;
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.rotas-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 56px 20px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #fff;
+    text-align: center;
+}
+
+.rotas-empty > span {
+    margin-bottom: 10px;
+    font-size: 2rem;
+}
+
+.rotas-empty h2 {
+    margin: 0 0 6px;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.rotas-empty p {
+    color: #64748b;
+    font-size: 0.84rem;
+}
+
+.rotas-alert {
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 0.85rem;
+}
+
+.rotas-modal-backdrop {
+    position: fixed;
+    z-index: 20;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.55);
+}
+
+.rotas-modal {
+    overflow-y: auto;
+    width: min(100%, 760px);
+    max-height: min(90vh, 900px);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.25);
+}
+
+.rotas-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 22px 26px 18px;
+    border-bottom: 1px solid #edf1f6;
+}
+
+.rotas-modal-header > div > span {
+    color: #2563eb;
+    font-size: 0.67rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.rotas-modal-header h2 {
+    margin: 5px 0 0;
+    color: #0f172a;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.rotas-modal-close {
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 7px;
+    background: #f1f5f9;
+    color: #475569;
+    cursor: pointer;
+    font-size: 1.35rem;
+    line-height: 1;
+}
+
+.rotas-modal form {
+    padding: 22px 26px 0;
+}
+
+.rotas-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.rotas-form-grid label,
+.rotas-stop-fields label {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    color: #334155;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.rotas-form-grid input,
+.rotas-form-grid select,
+.rotas-stop-fields input {
+    width: 100%;
+    min-height: 40px;
+    box-sizing: border-box;
+    padding: 0 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    outline: 0;
+    background: #fff;
+    color: #0f172a;
+    font: inherit;
+    font-size: 0.83rem;
+}
+
+.rotas-form-grid input:focus,
+.rotas-form-grid select:focus,
+.rotas-stop-fields input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.rotas-driver-field {
+    grid-column: 1 / -1;
+}
+
+.rotas-stops-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin: 24px 0 12px;
+}
+
+.rotas-stops-header p {
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 0.76rem;
+}
+
+.rota-add-stop {
+    padding: 7px 10px;
+    border: 1px solid #bfdbfe;
+    border-radius: 7px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.rotas-driver-register {
+    display: grid;
+    justify-items: start;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.rotas-driver-register-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #dbeafe;
+    border-radius: 9px;
+    background: #f8fbff;
+    box-sizing: border-box;
+}
+
+.rotas-driver-register-fields label {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    color: #334155;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.rotas-driver-register-fields input {
+    width: 100%;
+    min-height: 40px;
+    box-sizing: border-box;
+    padding: 0 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    outline: 0;
+    background: #fff;
+    color: #0f172a;
+    font: inherit;
+    font-size: 0.83rem;
+}
+
+.rotas-driver-register-fields input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.rotas-driver-submit {
+    grid-column: 1 / -1;
+    justify-self: start;
+    min-height: 38px;
+    padding: 0 12px;
+    border: 1px solid #bfdbfe;
+    border-radius: 7px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.rotas-driver-submit:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.rotas-stop-fields {
+    display: grid;
+    gap: 10px;
+}
+
+.rotas-stop-fields fieldset {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(180px, 1.5fr) repeat(2, minmax(110px, 0.7fr));
+    align-items: end;
+    gap: 12px;
+    min-width: 0;
+    margin: 0;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+}
+
+.rotas-stop-fields legend {
+    padding: 0 5px;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.rotas-stop-fields .rotas-stop-address {
+    grid-column: 1 / -1;
+}
+
+.rota-remove-stop {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    display: grid;
+    width: 23px;
+    height: 23px;
+    place-items: center;
+    border: 1px solid #fecaca;
+    border-radius: 50%;
+    background: #fff;
+    color: #b91c1c;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.rotas-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin: 22px -26px 0;
+    padding: 16px 26px;
+    border-top: 1px solid #edf1f6;
+    background: #f8fafc;
+}
+
+.rotas-logout {
+    margin-top: auto;
+    border: 0;
+    background: none;
+    color: #ff6b6b;
+    cursor: pointer;
+    text-align: left;
+}
+
+@media (max-width: 900px) {
+    .rotas-main {
+        padding: 24px;
+    }
+
+    .rotas-summary {
+        gap: 10px;
+    }
+
+    .rotas-summary-card {
+        padding: 13px;
+    }
+
+    .rotas-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .rotas-search {
+        width: auto;
+    }
+
+    .rotas-toolbar-actions {
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 620px) {
+    .rotas-main {
+        padding: 20px 14px;
+    }
+
+    .rotas-header {
+        gap: 12px;
+    }
+
+    .rotas-header .welcome-text h1 {
+        font-size: 1.4rem;
+    }
+
+    .rotas-header .welcome-text p {
+        max-width: 260px;
+        font-size: 0.82rem;
+    }
+
+    .rotas-role {
+        display: none;
+    }
+
+    .rotas-summary {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .rotas-summary-card {
+        min-height: 62px;
+        padding: 10px 14px;
+    }
+
+    .rotas-summary-icon {
+        width: 38px;
+        height: 38px;
+    }
+
+    .rotas-toolbar-actions {
+        align-items: stretch;
+        flex-wrap: wrap;
+    }
+
+    .rotas-toolbar-actions select {
+        flex: 1;
+    }
+
+    .rota-card-header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 16px;
+    }
+
+    .rota-actions {
+        width: 100%;
+    }
+
+    .rota-actions button {
+        flex: 1;
+    }
+
+    .rota-driver {
+        padding: 12px 16px;
+    }
+
+    .rota-itinerary {
+        padding: 14px 16px 18px;
+    }
+
+    .rota-itinerary li {
+        grid-template-columns: 30px minmax(90px, 1fr);
+        gap: 9px;
+        padding: 5px 0;
+    }
+
+    .rota-stop-times {
+        grid-column: 2;
+        justify-content: flex-start;
+        gap: 18px;
+    }
+
+    .rota-stop-times > span {
+        align-items: flex-start;
+    }
+
+    .rotas-modal-backdrop {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .rotas-modal {
+        max-height: 94vh;
+        border-radius: 14px 14px 0 0;
+    }
+
+    .rotas-modal-header,
+    .rotas-modal form {
+        padding-right: 18px;
+        padding-left: 18px;
+    }
+
+    .rotas-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rotas-driver-field {
+        grid-column: auto;
+    }
+
+    .rotas-driver-register-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .rotas-driver-submit {
+        grid-column: auto;
+        width: 100%;
+    }
+
+    .rotas-stops-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .rotas-stop-fields fieldset {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .rotas-stop-fields .rotas-stop-address {
+        grid-column: 1 / -1;
+    }
+
+    .rotas-modal-footer {
+        margin-right: -18px;
+        margin-left: -18px;
+        padding-right: 18px;
+        padding-left: 18px;
+    }
+}
