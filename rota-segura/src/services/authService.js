@@ -11,13 +11,13 @@ export const authService = {
     },
 
     cadastrar: async (dadosUsuario) => {
-        const response = await api.post('/api/auth/signup', {
-            nome: dadosUsuario.nome,
-            email: dadosUsuario.email,
-            password: dadosUsuario.senha,
-            perfil: dadosUsuario.perfil || 'responsavel' // Garante o envio do perfil selecionado
-        });
-        return response.data;
+    const response = await api.post('/api/auth/signup', {
+        nome: dadosUsuario.nome,
+        email: dadosUsuario.email,
+        password: dadosUsuario.senha,
+        perfil: (dadosUsuario.perfil || 'RESPONSAVEL').toUpperCase()
+    });
+    return response.data;
     },
 
     recuperarSenha: async (email) => {
