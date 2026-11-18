@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import Sidebar from '../pages/Sidebar';
 import './Dashboard.css';
 
 export default function Estudantes() {
@@ -18,17 +19,16 @@ export default function Estudantes() {
     const userId = localStorage.getItem('@RotaSegura:userId') || '';
     const fullName = localStorage.getItem('@RotaSegura:userName') || 'Usuário';
 
-    // Verifica se é administrador
-    const ehAdmin = userRole === 'administrador' || userRole === 'admin';
+    const normalizedRole = userRole ? String(userRole).toUpperCase() : '';
+    const ehAdmin = ['ADMIN', 'GESTOR', 'ADMINISTRADOR'].includes(normalizedRole);
 
     const [formData, setFormData] = useState({
+        matricula: '',
         nome: '',
         data_nascimento: '',
         serie: '',
         email_responsavel: '',
         responsavel_email: '',
-        email_estudante: '', // Credencial de login do estudante
-        senha_estudante: '', // Senha inicial de acesso
         endereco_embarque: '',
         numero: '',
         bairro: '',
@@ -48,9 +48,9 @@ export default function Estudantes() {
             const response = await api.get('/api/alunos');
             let lista = response.data?.alunos || response.data || [];
 
-            if (userRole === 'responsavel' && userId) {
+            if (normalizedRole === 'RESPONSAVEL' && userId) {
                 lista = lista.filter(aluno => String(aluno.responsavel_id) === String(userId));
-            } else if (userRole === 'estudante' && userId) {
+            } else if (normalizedRole === 'ESTUDANTE' && userId) {
                 lista = lista.filter(aluno => String(aluno.usuario_id) === String(userId) || String(aluno.id) === String(userId));
             }
 
@@ -69,11 +69,6 @@ export default function Estudantes() {
             return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
         }
         return name.substring(0, 2).toUpperCase();
-    };
-
-    const handleLogout = () => {
-        localStorage.clear();
-        navigate('/', { replace: true });
     };
 
     const alunoMenorDeIdade = (dataNascimento) => {
@@ -96,13 +91,12 @@ export default function Estudantes() {
             const dataNasc = aluno.data_nascimento ? aluno.data_nascimento.slice(0, 10) : '';
             const emailResp = aluno.email_responsavel || aluno.responsavel_email || '';
             setFormData({
+                matricula: aluno.matricula || aluno.Matricula || '',
                 nome: aluno.nome || '',
                 data_nascimento: dataNasc,
                 serie: aluno.serie || '',
                 email_responsavel: emailResp,
                 responsavel_email: emailResp,
-                email_estudante: aluno.email_estudante || '', // Disponível também na edição
-                senha_estudante: '', // Senha vazia por segurança para redefinição opcional
                 endereco_embarque: aluno.endereco_embarque || '',
                 numero: aluno.numero || '',
                 bairro: aluno.bairro || '',
@@ -114,13 +108,12 @@ export default function Estudantes() {
         } else {
             setAlunoEmEdicao(null);
             setFormData({
+                matricula: '',
                 nome: '', 
                 data_nascimento: '', 
                 serie: '', 
                 email_responsavel: '', 
                 responsavel_email: '', 
-                email_estudante: '',
-                senha_estudante: '',
                 endereco_embarque: '', 
                 numero: '', 
                 bairro: '', 
@@ -161,7 +154,7 @@ export default function Estudantes() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!ehAdmin) {
-            alert('Apenas administradores podem realizar esta ação.');
+            alert('Apenas administradores e gestores podem realizar esta ação.');
             return;
         }
 
@@ -170,6 +163,7 @@ export default function Estudantes() {
             
             const payload = {
                 ...formData,
+                matricula: formData.matricula ? String(formData.matricula).trim() : '',
                 userRole: userRole,
                 responsavel_email: formData.email_responsavel || formData.responsavel_email,
                 rota_id: Number(formData.rota_id)
@@ -208,49 +202,16 @@ export default function Estudantes() {
         const termo = termoBusca.toLowerCase();
         const nomeMatch = aluno.nome?.toLowerCase().includes(termo);
         const serieMatch = aluno.serie?.toLowerCase().includes(termo);
-        return nomeMatch || serieMatch;
+        const matriculaMatch = (aluno.matricula || aluno.Matricula)?.toLowerCase().includes(termo);
+        return nomeMatch || serieMatch || matriculaMatch;
     });
 
     const menorIdadeAtual = alunoMenorDeIdade(formData.data_nascimento);
 
     return (
         <div className="dashboard-container">
-            <aside className="dashboard-sidebar">
-                <div className="sidebar-logo">
-                    <h2>RotaSegura</h2>
-                </div>
-                <nav className="sidebar-nav">
-                    <Link to="/dashboard" className="nav-item">
-                        <span className="nav-icon">🏠</span> Inicio
-                    </Link>
-                    <Link to="/rotas" className="nav-item">
-                        <span className="nav-icon">🚌</span> Rotas
-                    </Link>
-                    <Link to="/estudantes" className="nav-item active">
-                        <span className="nav-icon">👤</span> Estudantes
-                    </Link>
-                    <Link to="/historico" className="nav-item">
-                        <span className="nav-icon">📋</span> Histórico
-                    </Link>
-                    <Link to="/notificacoes" className="nav-item">
-                        <span className="nav-icon">🔔</span> Notificações
-                    </Link>
-                    <Link to="/perfil" className="nav-item">
-                        <span className="nav-icon">⚙️</span> Perfil
-                    </Link>
-                    <Link to="/suporte" className="nav-item">
-                        <span className="nav-icon">💬</span> Suporte
-                    </Link>
-
-                    <button 
-                        onClick={handleLogout} 
-                        className="nav-item btn-logout"
-                        style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', color: '#ff6b6b', marginTop: 'auto', display: 'flex', alignItems: 'center', padding: '12px 16px' }}
-                    >
-                        <span className="nav-icon">🚪</span> Sair
-                    </button>
-                </nav>
-            </aside>
+            {/* Componente Sidebar reutilizável mantendo a consistência do menu */}
+            <Sidebar />
 
             <main className="dashboard-main">
                 <header className="dashboard-header">
@@ -271,13 +232,11 @@ export default function Estudantes() {
                     </div>
                 </header>
 
-                {/* NOTA: A barra flutuante de seleção de estudante foi completamente removida daqui */}
-
                 <div className="card" style={{ marginTop: '20px', padding: '20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
                         <input 
                             type="text" 
-                            placeholder="Filtrar por nome ou série..." 
+                            placeholder="Filtrar por matrícula, nome ou série..." 
                             value={termoBusca} 
                             onChange={(e) => setTermoBusca(e.target.value)}
                             style={{ padding: '8px 12px', width: '100%', maxWidth: '320px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '14px' }}
@@ -288,7 +247,7 @@ export default function Estudantes() {
                     </div>
 
                     {carregando ? (
-                        <p style={{ textAlign: 'center', padding: '20px', color: '#666' }}>A carregar estudantes...</p>
+                        <p style={{ textAlign: 'center', padding: '20px', color: '#666' }}>Carregando estudantes...</p>
                     ) : alunos.length === 0 ? (
                         <div style={{ textAlign: 'center', padding: '30px' }}>
                             <p style={{ color: '#666', marginBottom: '15px' }}>Nenhum estudante encontrado para a sua conta.</p>
@@ -306,6 +265,7 @@ export default function Estudantes() {
                             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                                 <thead>
                                     <tr style={{ borderBottom: '2px solid #eee', color: '#555' }}>
+                                        <th style={{ padding: '12px' }}>Matrícula</th>
                                         <th style={{ padding: '12px' }}>Nome</th>
                                         <th style={{ padding: '12px' }}>Série</th>
                                         <th style={{ padding: '12px' }}>Responsável</th>
@@ -316,9 +276,10 @@ export default function Estudantes() {
                                 <tbody>
                                     {alunosFiltrados.map((aluno) => (
                                         <tr key={aluno.id} style={{ borderBottom: '1px solid #f1f1f1' }}>
+                                            <td style={{ padding: '12px', fontWeight: '500' }}>{aluno.matricula || aluno.Matricula || 'N/D'}</td>
                                             <td style={{ padding: '12px', fontWeight: '500' }}>{aluno.nome}</td>
                                             <td style={{ padding: '12px' }}>{aluno.serie || 'Não informada'}</td>
-                                            <td style={{ padding: '12px' }}>{aluno.email_responsavel || aluno.responsavel_email || 'Não vinculado'}</td>
+                                            <td style={{ padding: '12px' }}>{aluno.email_responsavel || aluno.responsavel_email || (aluno.responsaveis?.[0]?.email) || 'Não vinculado'}</td>
                                             <td style={{ padding: '12px' }}>
                                                 {aluno.endereco_embarque}{aluno.numero ? `, ${aluno.numero}` : ''} - {aluno.bairro}
                                             </td>
@@ -361,7 +322,6 @@ export default function Estudantes() {
                 </div>
             </main>
 
-            {/* Modal de Cadastro / Edição */}
             {modalAberto && ehAdmin && (
                 <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
                     <div style={{ background: '#fff', padding: '25px 30px', borderRadius: '8px', width: '100%', maxWidth: '520px', maxHeight: '92vh', overflowY: 'auto' }}>
@@ -370,6 +330,11 @@ export default function Estudantes() {
                         </h2>
                         
                         <form onSubmit={handleSubmit}>
+                            <div style={{ marginBottom: '10px' }}>
+                                <label style={{ display: 'block', fontSize: '13px', marginBottom: '3px', fontWeight: '500' }}>Matrícula *</label>
+                                <input type="text" name="matricula" placeholder="Ex: 20261234" value={formData.matricula} onChange={handleChange} required style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #ccc' }} />
+                            </div>
+
                             <div style={{ marginBottom: '10px' }}>
                                 <label style={{ display: 'block', fontSize: '13px', marginBottom: '3px', fontWeight: '500' }}>Nome Completo *</label>
                                 <input type="text" name="nome" value={formData.nome} onChange={handleChange} required style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #ccc' }} />
@@ -399,35 +364,6 @@ export default function Estudantes() {
                                     required={menorIdadeAtual} 
                                     style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #ccc' }} 
                                 />
-                            </div>
-
-                            {/* Campos para Credenciais de Acesso do Estudante (Disponíveis tanto no Cadastro quanto na Edição) */}
-                            <div style={{ background: '#f8f9fa', padding: '12px', borderRadius: '6px', marginBottom: '10px', border: '1px dashed #ccc' }}>
-                                <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#555', marginBottom: '8px' }}>Credenciais de Acesso do Estudante (Opcional)</p>
-                                
-                                <div style={{ marginBottom: '8px' }}>
-                                    <label style={{ display: 'block', fontSize: '12px', marginBottom: '2px', fontWeight: '500' }}>E-mail de Login do Estudante</label>
-                                    <input 
-                                        type="email" 
-                                        name="email_estudante" 
-                                        placeholder="estudante@email.com" 
-                                        value={formData.email_estudante} 
-                                        onChange={handleChange} 
-                                        style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '13px' }} 
-                                    />
-                                </div>
-
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '12px', marginBottom: '2px', fontWeight: '500' }}>Senha Inicial {alunoEmEdicao ? '(Deixe em branco para manter)' : ''}</label>
-                                    <input 
-                                        type="password" 
-                                        name="senha_estudante" 
-                                        placeholder="Mínimo 6 caracteres" 
-                                        value={formData.senha_estudante} 
-                                        onChange={handleChange} 
-                                        style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '13px' }} 
-                                    />
-                                </div>
                             </div>
 
                             <div style={{ marginBottom: '10px' }}>
@@ -481,33 +417,32 @@ export default function Estudantes() {
                 </div>
             )}
 
-        {}
-        {modalVisualizarAberto && alunoVisualizando && (
-            <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                <div style={{ background: '#fff', padding: '25px 30px', borderRadius: '8px', width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto' }}>
-                    <h2 style={{ marginBottom: '15px', color: '#0B192C', fontSize: '20px' }}>Detalhes do Estudante</h2>
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px', color: '#333', marginBottom: '20px' }}>
-                        <p><strong>Nome:</strong> {alunoVisualizando.nome}</p>
-                        <p><strong>E-mail de Acesso (Login):</strong> {alunoVisualizando.email_estudante || 'Não cadastrado'}</p>
-                        <p><strong>Data de Nascimento:</strong> {alunoVisualizando.data_nascimento ? alunoVisualizando.data_nascimento.slice(0, 10) : 'Não informada'}</p>
-                        <p><strong>Série:</strong> {alunoVisualizando.serie || 'Não informada'}</p>
-                        <p><strong>E-mail do Responsável:</strong> {alunoVisualizando.email_responsavel || alunoVisualizando.responsavel_email || 'Não informado'}</p>
-                        <p><strong>Endereço de Embarque:</strong> {alunoVisualizando.endereco_embarque}, nº {alunoVisualizando.numero}</p>
-                        <p><strong>Bairro:</strong> {alunoVisualizando.bairro}</p>
-                        <p><strong>Cidade/Estado:</strong> {alunoVisualizando.cidade} - {alunoVisualizando.estado}</p>
-                        <p><strong>CEP:</strong> {alunoVisualizando.cep}</p>
-                        <p><strong>ID da Rota:</strong> {alunoVisualizando.rota_id}</p>
-                    </div>
+            {modalVisualizarAberto && alunoVisualizando && (
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div style={{ background: '#fff', padding: '25px 30px', borderRadius: '8px', width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto' }}>
+                        <h2 style={{ marginBottom: '15px', color: '#0B192C', fontSize: '20px' }}>Detalhes do Estudante</h2>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px', color: '#333', marginBottom: '20px' }}>
+                            <p><strong>Matrícula:</strong> {alunoVisualizando.matricula || alunoVisualizando.Matricula || 'Não informada'}</p>
+                            <p><strong>Nome:</strong> {alunoVisualizando.nome}</p>
+                            <p><strong>Data de Nascimento:</strong> {alunoVisualizando.data_nascimento ? alunoVisualizando.data_nascimento.slice(0, 10) : 'Não informada'}</p>
+                            <p><strong>Série:</strong> {alunoVisualizando.serie || 'Não informada'}</p>
+                            <p><strong>E-mail do Responsável:</strong> {alunoVisualizando.email_responsavel || alunoVisualizando.responsavel_email || 'Não informado'}</p>
+                            <p><strong>Endereço de Embarque:</strong> {alunoVisualizando.endereco_embarque}, nº {alunoVisualizando.numero}</p>
+                            <p><strong>Bairro:</strong> {alunoVisualizando.bairro}</p>
+                            <p><strong>Cidade/Estado:</strong> {alunoVisualizando.cidade} - {alunoVisualizando.estado}</p>
+                            <p><strong>CEP:</strong> {alunoVisualizando.cep}</p>
+                            <p><strong>ID da Rota:</strong> {alunoVisualizando.rota_id}</p>
+                        </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <button onClick={fecharModalVisualizar} style={{ padding: '8px 16px', background: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-                            Fechar
-                        </button>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <button onClick={fecharModalVisualizar} style={{ padding: '8px 16px', background: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                                Fechar
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        )}
+            )}
         </div>
     );
 }

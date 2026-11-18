@@ -8,7 +8,7 @@ export default function Login() {
 
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
-    const [perfil, setPerfil] = useState('responsavel'); // Valor padrão: responsável
+    const [perfil, setPerfil] = useState('responsavel'); 
     const [mostrarSenha, setMostrarSenha] = useState(false);
     const [lembrarMe, setLembrarMe] = useState(false);
 
@@ -39,7 +39,6 @@ export default function Login() {
         try {
             setCarregando(true);
 
-            // Envia o e-mail, senha e o perfil selecionado para a autenticação
             const data = await authService.login(
                 emailFormatado,
                 senha,
@@ -53,13 +52,11 @@ export default function Login() {
                 return;
             }
 
-            // Persiste o Token, Nome e Perfil do Usuário
             localStorage.setItem('@RotaSegura:token', token);
 
             const nomeUsuario = data?.user?.nome || data?.user?.name || data?.nome || 'Usuário';
             localStorage.setItem('@RotaSegura:userName', nomeUsuario);
 
-            // Salva o perfil recebido da API (ou o selecionado na tela)
             const roleFinal = data?.user?.perfil || data?.perfil || perfil;
             localStorage.setItem('@RotaSegura:userRole', roleFinal);
 
@@ -87,7 +84,7 @@ export default function Login() {
 
     return (
         <div className="login-split-container">
-            {/* Painel Esquerdo - Branding */}
+            {}
             <div className="login-left-pane">
                 <div className="brand-header">
                     <div className="logo-shield" aria-hidden="true">
@@ -126,7 +123,7 @@ export default function Login() {
                 </div>
             </div>
 
-            {/* Painel Direito - Formulário com Seletor de Perfil */}
+            {}
             <div className="login-right-pane">
                 <div className="login-card-modern">
                     <div className="card-top-brand">
@@ -150,7 +147,7 @@ export default function Login() {
                     )}
 
                     <form onSubmit={handleSubmit} noValidate>
-                        {/* Seletor de Perfil do Usuário */}
+                        {}
                         <div className="input-field-group">
                             <label htmlFor="perfil">Tipo de Perfil</label>
                             <div className="input-with-icon">
@@ -173,13 +170,13 @@ export default function Login() {
                                     }}
                                 >
                                     <option value="responsavel">👨‍👩‍👧 Responsável</option>
-                                    <option value="estudante">🎓 Estudante</option>
-                                    <option value="administrador">⚙️ Administrador</option>
+                                    <option value="motorista">🚐 Motorista</option>
+                                    <option value="administrador">⚙️ Administrador / Gestor</option>
                                 </select>
                             </div>
                         </div>
 
-                        {/* Campo de Email */}
+                        {}
                         <div className="input-field-group">
                             <label htmlFor="email">Email</label>
                             <div className="input-with-icon">
@@ -201,7 +198,7 @@ export default function Login() {
                             </div>
                         </div>
 
-                        {/* Campo de Senha */}
+                        {}
                         <div className="input-field-group">
                             <label htmlFor="senha">Senha</label>
                             <div className="input-with-icon">

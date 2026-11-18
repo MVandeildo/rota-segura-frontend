@@ -149,7 +149,9 @@
 }
 
 .rota-card {
-    overflow: hidden;
+    /* CORREÇÃO DO PROBLEMA DE CORTE: Substituído overflow: hidden por visível e altura dinâmica */
+    height: auto;
+    overflow: visible;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
     background: #fff;

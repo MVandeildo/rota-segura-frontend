@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import Sidebar from '../pages/Sidebar';
 import api from '../services/api';
 import './Dashboard.css';
 import './Rotas.css';
@@ -14,12 +15,8 @@ const paradaVazia = () => ({
 const formularioVazio = () => ({
     nome: '',
     turno: 'MANHA',
-    veiculoId: '',
-    motoristaId: '',
     paradas: [paradaVazia()]
 });
-
-const motoristaVazio = () => ({ nome: '', email: '', senha: '', telefone: '' });
 
 const mensagemErro = (error, padrao) => error.response?.data?.erro || padrao;
 
@@ -27,10 +24,6 @@ const normalizarRota = (rota) => ({
     id: rota.id,
     nome: rota.nome,
     turno: rota.turno || 'MANHA',
-    van: [rota.veiculo_modelo, rota.veiculo_placa].filter(Boolean).join(' · ') || 'Veículo não alocado',
-    veiculoId: rota.veiculo_id ? String(rota.veiculo_id) : '',
-    motoristaId: rota.motorista_id ? String(rota.motorista_id) : '',
-    motorista: rota.motorista_nome || 'Motorista não definido',
     ativa: rota.ativa !== false,
     paradas: (rota.paradas || []).map((parada) => ({
         id: parada.id,
@@ -45,14 +38,11 @@ export default function Rotas() {
     const userRole = localStorage.getItem('@RotaSegura:userRole') || 'responsavel';
     const userName = localStorage.getItem('@RotaSegura:userName') || 'Usuário';
     const podeGerenciar = ['administrador', 'admin', 'gestor'].includes(userRole.toLowerCase());
+    
     const [rotas, setRotas] = useState([]);
-    const [veiculos, setVeiculos] = useState([]);
-    const [motoristas, setMotoristas] = useState([]);
     const [carregando, setCarregando] = useState(true);
     const [salvando, setSalvando] = useState(false);
-    const [cadastrandoMotorista, setCadastrandoMotorista] = useState(false);
-    const [cadastroMotoristaAberto, setCadastroMotoristaAberto] = useState(false);
-    const [motoristaForm, setMotoristaForm] = useState(motoristaVazio);
+    
     const [erro, setErro] = useState('');
     const [busca, setBusca] = useState('');
     const [filtro, setFiltro] = useState('ativas');
@@ -73,19 +63,6 @@ export default function Rotas() {
                     throw new Error('A API retornou um formato inválido para as rotas.');
                 }
                 setRotas(respostaRotas.data.map(normalizarRota));
-
-                if (podeGerenciar) {
-                    const [respostaVeiculos, respostaMotoristas] = await Promise.all([
-                        api.get('/api/veiculos'),
-                        api.get('/api/motoristas')
-                    ]);
-                    if (!ativo) return;
-                    if (!Array.isArray(respostaVeiculos.data) || !Array.isArray(respostaMotoristas.data)) {
-                        throw new Error('A API retornou um formato inválido para veículos ou motoristas.');
-                    }
-                    setVeiculos(respostaVeiculos.data);
-                    setMotoristas(respostaMotoristas.data);
-                }
             } catch (error) {
                 console.error('Não foi possível carregar os dados das rotas:', error);
                 if (ativo) setErro(mensagemErro(error, 'Não foi possível carregar as rotas. Tente novamente.'));
@@ -96,7 +73,7 @@ export default function Rotas() {
 
         carregarDados();
         return () => { ativo = false; };
-    }, [podeGerenciar]);
+    }, []);
 
     const rotasVisiveis = useMemo(() => {
         const termo = busca.trim().toLocaleLowerCase('pt-BR');
@@ -108,8 +85,6 @@ export default function Rotas() {
 
             const conteudo = [
                 rota.nome,
-                rota.van,
-                rota.motorista,
                 ...rota.paradas.map((parada) => parada.local)
             ].join(' ').toLocaleLowerCase('pt-BR');
             return conteudo.includes(termo);
@@ -123,21 +98,30 @@ export default function Rotas() {
         setFormulario(rota ? {
             nome: rota.nome,
             turno: rota.turno || 'MANHA',
-            veiculoId: rota.veiculoId,
-            motoristaId: rota.motoristaId,
             paradas: rota.paradas.length
                 ? rota.paradas.map((parada) => ({ ...parada }))
                 : [paradaVazia()]
         } : formularioVazio());
-        setCadastroMotoristaAberto(false);
-        setMotoristaForm(motoristaVazio());
         setModalAberto(true);
     };
 
     const fecharCadastro = () => {
         setModalAberto(false);
         setRotaEmEdicao(null);
-        setCadastroMotoristaAberto(false);
+    };
+
+    const adicionarParada = () => {
+        setFormulario((atual) => ({
+            ...atual,
+            paradas: [...atual.paradas, paradaVazia()]
+        }));
+    };
+
+    const removerParada = (id) => {
+        setFormulario((atual) => ({
+            ...atual,
+            paradas: atual.paradas.length > 1 ? atual.paradas.filter((p) => p.id !== id) : atual.paradas
+        }));
     };
 
     const atualizarParada = (id, campo, valor) => {
@@ -158,8 +142,6 @@ export default function Rotas() {
         const dadosRota = {
             nome: formulario.nome.trim(),
             turno: formulario.turno,
-            veiculo_id: Number(formulario.veiculoId),
-            motorista_id: Number(formulario.motoristaId),
             ativa: rotaEmEdicao?.ativa ?? true,
             paradas: formulario.paradas.map((parada) => ({
                 endereco: parada.local.trim(),
@@ -187,30 +169,6 @@ export default function Rotas() {
         }
     };
 
-    const cadastrarMotorista = async () => {
-        if (!podeGerenciar || cadastrandoMotorista) return;
-        setCadastrandoMotorista(true);
-        setErro('');
-        try {
-            const resposta = await api.post('/api/motoristas', {
-                nome: motoristaForm.nome.trim(),
-                email: motoristaForm.email.trim(),
-                senha: motoristaForm.senha,
-                telefone: motoristaForm.telefone.trim()
-            });
-            const novoMotorista = resposta.data.motorista;
-            setMotoristas((atuais) => [...atuais, novoMotorista]);
-            setFormulario((atual) => ({ ...atual, motoristaId: String(novoMotorista.id) }));
-            setMotoristaForm(motoristaVazio());
-            setCadastroMotoristaAberto(false);
-        } catch (error) {
-            console.error('Não foi possível cadastrar o motorista:', error);
-            setErro(mensagemErro(error, 'Não foi possível cadastrar o motorista. Verifique os dados.'));
-        } finally {
-            setCadastrandoMotorista(false);
-        }
-    };
-
     const alternarStatus = async (rota) => {
         if (!podeGerenciar) return;
         setErro('');
@@ -224,38 +182,17 @@ export default function Rotas() {
         }
     };
 
-    const sair = () => {
-        localStorage.removeItem('@RotaSegura:token');
-        localStorage.removeItem('@RotaSegura:userName');
-        localStorage.removeItem('@RotaSegura:userRole');
-        navigate('/', { replace: true });
-    };
-
     const iniciais = userName.trim().split(/\s+/).slice(0, 2).map((parte) => parte[0]).join('').toUpperCase();
 
     return (
         <div className="dashboard-container">
-            <aside className="dashboard-sidebar">
-                <div className="sidebar-logo"><h2>RotaSegura</h2></div>
-                <nav className="sidebar-nav">
-                    <Link to="/dashboard" className="nav-item"><span className="nav-icon">🏠</span> Início</Link>
-                    <Link to="/rotas" className="nav-item active"><span className="nav-icon">🚌</span> Rotas</Link>
-                    {userRole !== 'estudante' && (
-                        <Link to="/estudantes" className="nav-item"><span className="nav-icon">👤</span> Estudantes</Link>
-                    )}
-                    <Link to="/historico" className="nav-item"><span className="nav-icon">📋</span> Histórico</Link>
-                    <Link to="/suporte" className="nav-item"><span className="nav-icon">💬</span> Suporte</Link>
-                    <button onClick={sair} className="nav-item btn-logout rotas-logout">
-                        <span className="nav-icon">🚪</span> Sair
-                    </button>
-                </nav>
-            </aside>
+            <Sidebar />
 
             <main className="dashboard-main rotas-main">
                 <header className="dashboard-header rotas-header">
                     <div className="welcome-text">
                         <h1>Rotas escolares</h1>
-                        <p>Consulte itinerários, veículos, motoristas e horários.</p>
+                        <p>Consulte itinerários e horários.</p>
                     </div>
                     <div className="header-user-actions">
                         <span className="rotas-role">{userRole}</span>
@@ -268,15 +205,11 @@ export default function Rotas() {
                 <section className="rotas-summary" aria-label="Resumo das rotas">
                     <div className="rotas-summary-card">
                         <span className="rotas-summary-icon">🚌</span>
-                        <div><strong>{rotas.filter((rota) => rota.ativa).length}</strong><span>Rotas ativas</span></div>
+                        <div><strong>{rotasVisiveis.filter((rota) => rota.ativa).length}</strong><span>Rotas ativas</span></div>
                     </div>
                     <div className="rotas-summary-card">
                         <span className="rotas-summary-icon">📍</span>
-                        <div><strong>{rotas.filter((rota) => rota.ativa).reduce((total, rota) => total + rota.paradas.length, 0)}</strong><span>Pontos de parada</span></div>
-                    </div>
-                    <div className="rotas-summary-card">
-                        <span className="rotas-summary-icon">👨‍✈️</span>
-                        <div><strong>{new Set(rotas.filter((rota) => rota.ativa).map((rota) => rota.motorista)).size}</strong><span>Motoristas alocados</span></div>
+                        <div><strong>{rotasVisiveis.filter((rota) => rota.ativa).reduce((total, rota) => total + rota.paradas.length, 0)}</strong><span>Pontos de parada</span></div>
                     </div>
                 </section>
 
@@ -287,7 +220,7 @@ export default function Rotas() {
                             type="search"
                             value={busca}
                             onChange={(event) => setBusca(event.target.value)}
-                            placeholder="Buscar rota, motorista, van ou parada..."
+                            placeholder="Buscar rota ou parada..."
                             aria-label="Buscar rotas"
                         />
                     </div>
@@ -329,7 +262,7 @@ export default function Rotas() {
                                                     {rota.ativa ? 'Ativa' : 'Inativa'}
                                                 </span>
                                             </div>
-                                            <p>{rota.van}</p>
+                                            <p>Turno: {rota.turno}</p>
                                         </div>
                                     </div>
                                     {podeGerenciar && (
@@ -343,11 +276,6 @@ export default function Rotas() {
                                             </button>
                                         </div>
                                     )}
-                                </div>
-
-                                <div className="rota-driver">
-                                    <span aria-hidden="true">👨‍✈️</span>
-                                    <div><span>Motorista responsável</span><strong>{rota.motorista}</strong></div>
                                 </div>
 
                                 <div className="rota-itinerary">
@@ -416,161 +344,52 @@ export default function Rotas() {
                                         <option value="NOITE">Noite</option>
                                     </select>
                                 </label>
-                                <label>
-                                    Veiculo alocada
-                                    <select
-                                        required
-                                        value={formulario.veiculoId}
-                                        onChange={(event) => setFormulario((atual) => ({ ...atual, veiculoId: event.target.value }))}
-                                    >
-                                        <option value="">Selecione um veículo</option>
-                                        {veiculos.filter((veiculo) => veiculo.status === 'ATIVO').map((veiculo) => (
-                                            <option key={veiculo.id} value={veiculo.id}>
-                                                {veiculo.modelo} · {veiculo.placa}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </label>
-                                <label className="rotas-driver-field">
-                                    Motorista responsável
-                                    <select
-                                        required
-                                        value={formulario.motoristaId}
-                                        onChange={(event) => setFormulario((atual) => ({ ...atual, motoristaId: event.target.value }))}
-                                    >
-                                        <option value="">Selecione um motorista</option>
-                                        {motoristas.map((motorista) => (
-                                            <option key={motorista.id} value={motorista.id}>{motorista.nome}</option>
-                                        ))}
-                                    </select>
-                                </label>
-                            </div>
 
-                            <div className="rotas-driver-register">
-                                <button
-                                    type="button"
-                                    className="rota-add-stop"
-                                    onClick={() => {
-                                        setCadastroMotoristaAberto((aberto) => !aberto);
-                                        setMotoristaForm(motoristaVazio());
-                                    }}
-                                >
-                                    {cadastroMotoristaAberto ? 'Cancelar cadastro de motorista' : '＋ Cadastrar novo motorista'}
-                                </button>
-                                {cadastroMotoristaAberto && (
-                                    <div className="rotas-driver-register-fields">
-                                        <label>
-                                            Nome completo do motorista
-                                            <input
-                                                required
-                                                maxLength="100"
-                                                value={motoristaForm.nome}
-                                                onChange={(event) => setMotoristaForm((atual) => ({ ...atual, nome: event.target.value }))}
-                                                placeholder="Nome completo"
-                                            />
-                                        </label>
-                                        <label>
-                                            E-mail de acesso
-                                            <input
-                                                required
-                                                type="email"
-                                                maxLength="150"
-                                                value={motoristaForm.email}
-                                                onChange={(event) => setMotoristaForm((atual) => ({ ...atual, email: event.target.value }))}
-                                                placeholder="motorista@email.com"
-                                            />
-                                        </label>
-                                        <label>
-                                            Senha inicial
-                                            <input
-                                                required
-                                                type="password"
-                                                minLength="8"
-                                                value={motoristaForm.senha}
-                                                onChange={(event) => setMotoristaForm((atual) => ({ ...atual, senha: event.target.value }))}
-                                                placeholder="Mínimo de 8 caracteres"
-                                            />
-                                        </label>
-                                        <label>
-                                            Telefone
-                                            <input
-                                                type="tel"
-                                                maxLength="30"
-                                                value={motoristaForm.telefone}
-                                                onChange={(event) => setMotoristaForm((atual) => ({ ...atual, telefone: event.target.value }))}
-                                                placeholder="(00) 00000-0000"
-                                            />
-                                        </label>
-                                        <button
-                                            type="button"
-                                            className="rotas-driver-submit"
-                                            disabled={cadastrandoMotorista || !motoristaForm.nome.trim() || !motoristaForm.email.trim() || motoristaForm.senha.length < 8}
-                                            onClick={cadastrarMotorista}
-                                        >
-                                            {cadastrandoMotorista ? 'Cadastrando...' : 'Cadastrar e selecionar motorista'}
-                                        </button>
+                                <div className="rotas-stops-section" style={{ gridColumn: '1 / -1' }}>
+                                    <div className="rotas-stops-header">
+                                        <h3>Paradas e itinerário</h3>
+                                        <button type="button" className="rota-add-stop" onClick={adicionarParada}>＋ Adicionar parada</button>
                                     </div>
-                                )}
-                            </div>
-
-                            <div className="rotas-stops-header">
-                                <div><h3>Pontos e horários</h3><p>Informe o endereço e os horários previstos em cada parada.</p></div>
-                                <button
-                                    type="button"
-                                    className="rota-add-stop"
-                                    onClick={() => setFormulario((atual) => ({ ...atual, paradas: [...atual.paradas, paradaVazia()] }))}
-                                >＋ Adicionar parada</button>
-                            </div>
-                            <div className="rotas-stop-fields">
-                                {formulario.paradas.map((parada, index) => (
-                                    <fieldset key={parada.id}>
-                                        <legend>Parada {index + 1}</legend>
-                                        <label className="rotas-stop-address">
-                                            Endereço ou ponto de referência
+                                    {formulario.paradas.map((parada, index) => (
+                                        <div key={parada.id} className="rotas-stop-row">
+                                            <span className="rotas-stop-index">{index + 1}</span>
                                             <input
                                                 required
-                                                maxLength="150"
+                                                placeholder="Endereço ou referência da parada"
                                                 value={parada.local}
-                                                onChange={(event) => atualizarParada(parada.id, 'local', event.target.value)}
-                                                placeholder="Rua, número, bairro ou escola"
+                                                onChange={(e) => atualizarParada(parada.id, 'local', e.target.value)}
                                             />
-                                        </label>
-                                        <label>
-                                            Embarque
                                             <input
-                                                required
                                                 type="time"
                                                 value={parada.embarque}
-                                                onChange={(event) => atualizarParada(parada.id, 'embarque', event.target.value)}
+                                                onChange={(e) => atualizarParada(parada.id, 'embarque', e.target.value)}
+                                                title="Horário de embarque"
                                             />
-                                        </label>
-                                        <label>
-                                            Desembarque
                                             <input
-                                                required
                                                 type="time"
                                                 value={parada.desembarque}
-                                                onChange={(event) => atualizarParada(parada.id, 'desembarque', event.target.value)}
+                                                onChange={(e) => atualizarParada(parada.id, 'desembarque', e.target.value)}
+                                                title="Horário de desembarque"
                                             />
-                                        </label>
-                                        {formulario.paradas.length > 1 && (
-                                            <button
-                                                type="button"
-                                                className="rota-remove-stop"
-                                                onClick={() => setFormulario((atual) => ({
-                                                    ...atual,
-                                                    paradas: atual.paradas.filter((item) => item.id !== parada.id)
-                                                }))}
-                                                aria-label={`Remover parada ${index + 1}`}
-                                            >×</button>
-                                        )}
-                                    </fieldset>
-                                ))}
+                                            {formulario.paradas.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    className="rotas-stop-remove"
+                                                    onClick={() => removerParada(parada.id)}
+                                                    title="Remover parada"
+                                                >
+                                                    ×
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
+
                             <footer className="rotas-modal-footer">
-                                <button type="button" className="rota-cancel-button" onClick={fecharCadastro}>Cancelar</button>
+                                <button type="button" className="rotas-secondary-button" onClick={fecharCadastro}>Cancelar</button>
                                 <button type="submit" className="rotas-primary-button" disabled={salvando}>
-                                    {salvando ? 'Salvando...' : rotaEmEdicao ? 'Salvar alterações' : 'Cadastrar rota'}
+                                    {salvando ? 'Salvando...' : (rotaEmEdicao ? 'Salvar alterações' : 'Cadastrar rota')}
                                 </button>
                             </footer>
                         </form>
