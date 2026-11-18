@@ -1,71 +1,87 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Sidebar from '../pages/Sidebar';
 import api from '../services/api';
 import './Dashboard.css';
 
 export default function Historico() {
     const navigate = useNavigate();
 
-    const [userName, setUserName] = useState('Usuário');
     const [fullName, setFullName] = useState('Usuário');
-    const [historicoViagens, setHistoricoViagens] = useState([]);
+    const [registros, setRegistros] = useState([]);
     const [carregando, setCarregando] = useState(true);
-    const [filtroPeriodo, setFiltroPeriodo] = useState('todos');
+    const [baixandoCsv, setBaixandoCsv] = useState(false);
+
+    const [dataInicio, setDataInicio] = useState('');
+    const [dataFim, setDataFim] = useState('');
+    const [rotaId, setRotaId] = useState('');
+    const [motoristaId, setMotoristaId] = useState('');
 
     useEffect(() => {
         const savedName = localStorage.getItem('@RotaSegura:userName');
         if (savedName) {
             setFullName(savedName);
-            setUserName(savedName.trim().split(' ')[0]);
         }
+        carregarRelatorio();
     }, []);
 
-    useEffect(() => {
-        carregarHistorico();
-    }, [filtroPeriodo]);
-
-    const calcularDatasFiltro = (periodo) => {
-        const hoje = new Date();
-        const formatarData = (d) => d.toISOString().split('T')[0];
-
-        if (periodo === 'semana') {
-            const umaSemanaAtras = new Date();
-            umaSemanaAtras.setDate(hoje.getDate() - 7);
-            return {
-                data_inicio: formatarData(umaSemanaAtras),
-                data_fim: formatarData(hoje)
-            };
-        }
-
-        if (periodo === 'mes') {
-            const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-            return {
-                data_inicio: formatarData(primeiroDiaMes),
-                data_fim: formatarData(hoje)
-            };
-        }
-
-        return { data_inicio: undefined, data_fim: undefined };
-    };
-
-    const carregarHistorico = async () => {
+    const carregarRelatorio = async (limpar = false) => {
         try {
             setCarregando(true);
-            const { data_inicio, data_fim } = calcularDatasFiltro(filtroPeriodo);
-
             const params = {};
-            if (data_inicio) params.data_inicio = data_inicio;
-            if (data_fim) params.data_fim = data_fim;
+            
+            if (!limpar) {
+                if (dataInicio) params.data_inicio = dataInicio;
+                if (dataFim) params.data_fim = dataFim;
+                if (rotaId) params.rota_id = rotaId;
+                if (motoristaId) params.motorista_id = motoristaId;
+            }
 
             const response = await api.get('/api/relatorios/auditoria', { params });
-            
-            const registros = response.data?.registros || response.data || [];
-            setHistoricoViagens(registros);
+            const dados = response.data?.viagens || [];
+            setRegistros(dados);
         } catch (error) {
-            console.error('Erro ao carregar o histórico de viagens:', error);
-            setHistoricoViagens([]);
+            console.error('Erro ao carregar o relatório de auditoria:', error);
+            setRegistros([]);
         } finally {
             setCarregando(false);
+        }
+    };
+
+    const handleLimparFiltros = () => {
+        setDataInicio('');
+        setDataFim('');
+        setRotaId('');
+        setMotoristaId('');
+        carregarRelatorio(true);
+    };
+
+    const handleDownloadCsv = async () => {
+        try {
+            setBaixandoCsv(true);
+            const params = { formato: 'csv' };
+            if (dataInicio) params.data_inicio = dataInicio;
+            if (dataFim) params.data_fim = dataFim;
+            if (rotaId) params.rota_id = rotaId;
+            if (motoristaId) params.motorista_id = motoristaId;
+
+            const response = await api.get('/api/relatorios/auditoria', {
+                params,
+                responseType: 'blob', 
+            });
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `relatorio-auditoria-${new Date().toISOString().slice(0, 10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (error) {
+            console.error('Erro ao baixar CSV:', error);
+            alert('Não foi possível gerar o arquivo CSV.');
+        } finally {
+            setBaixandoCsv(false);
         }
     };
 
@@ -78,171 +94,138 @@ export default function Historico() {
         return name.substring(0, 2).toUpperCase();
     };
 
-    const formatarDataHora = (dataString) => {
-        if (!dataString) return '-';
-        const data = new Date(dataString);
-        return isNaN(data) ? dataString : data.toLocaleString('pt-BR');
-    };
-
-    const handleLogout = () => {
-        localStorage.removeItem('@RotaSegura:token');
-        localStorage.removeItem('@RotaSegura:userName');
-        localStorage.removeItem('@RotaSegura:userRole');
-        navigate('/', { replace: true });
-    };
-
-    const baixarCsv = async () => {
-        try {
-            const token = localStorage.getItem('@RotaSegura:token'); 
-            
-            const resposta = await api.get('/api/relatorios/auditoria?formato=csv', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                responseType: 'blob'
-            });
-
-            const blob = new Blob([resposta.data], { type: 'text/csv;charset=utf-8;' });
-            const url = window.URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'historico-transporte.csv';
-            document.body.appendChild(a);
-            a.click();
-            
-            a.remove();
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error('Erro no download:', error);
-            alert('Não foi possível baixar o relatório CSV.');
-        }
-    };
-
     return (
         <div className="dashboard-container">
-            <aside className="dashboard-sidebar">
-                <div className="sidebar-logo">
-                    <h2>RotaSegura</h2>
-                </div>
-                <nav className="sidebar-nav">
-                    <Link to="/dashboard" className="nav-item">
-                        <span className="nav-icon">🏠</span> Inicio
-                    </Link>
-                    <Link to="/rotas" className="nav-item">
-                        <span className="nav-icon">🚌</span> Rotas
-                    </Link>
-                    <Link to="/estudantes" className="nav-item">
-                        <span className="nav-icon">👤</span> Estudantes
-                    </Link>
-                    <Link to="/historico" className="nav-item active">
-                        <span className="nav-icon">📋</span> Histórico
-                    </Link>
-                    <Link to="/notificacoes" className="nav-item">
-                        <span className="nav-icon">🔔</span> Notificações
-                    </Link>
-                    <Link to="/perfil" className="nav-item">
-                        <span className="nav-icon">⚙️</span> Perfil
-                    </Link>
-                    <Link to="/suporte" className="nav-item">
-                        <span className="nav-icon">💬</span> Suporte
-                    </Link>
-
-                    <button 
-                        onClick={handleLogout} 
-                        className="nav-item btn-logout"
-                        style={{ 
-                            background: 'none', border: 'none', width: '100%', 
-                            textAlign: 'left', cursor: 'pointer', color: '#ff6b6b', 
-                            marginTop: 'auto', display: 'flex', alignItems: 'center', padding: '12px 16px' 
-                        }}
-                    >
-                        <span className="nav-icon">🚪</span> Sair
-                    </button>
-                </nav>
-            </aside>
+            <Sidebar />
 
             <main className="dashboard-main">
                 <header className="dashboard-header">
                     <div className="welcome-text">
-                        <h1>Histórico de Viagens</h1>
-                        <p>Consulte o registro cronológico dos transportes realizados pelos estudantes.</p>
+                        <h1>Relatórios e Histórico de Rotas</h1>
+                        <p>Consulte o registro cronológico completo das presenças e viagens realizadas.</p>
                     </div>
-                    <div className="header-user-actions">
+                    <div className="header-user-actions" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                        <button 
+                            onClick={handleDownloadCsv}
+                            disabled={baixandoCsv}
+                            style={{ padding: '10px 18px', background: '#198754', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' }}
+                        >
+                            {baixandoCsv ? 'Gerando CSV...' : '📥 Baixar Relatório CSV'}
+                        </button>
                         <div className="user-avatar-initials">{getInitials(fullName)}</div>
                     </div>
                 </header>
 
                 <div className="card" style={{ marginTop: '20px', padding: '20px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
-                        <h3 style={{ margin: 0 }}>Registros Anteriores</h3>
-                        
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
-                            <button
-                                onClick={baixarCsv}
-                                style={{
-                                    display: 'flex', alignItems: 'center', gap: '8px',
-                                    backgroundColor: '#198754', hover: '#157347', color: 'white',
-                                    padding: '8px 16px', borderRadius: '6px', fontSize: '14px',
-                                    fontWeight: '500', border: 'none', cursor: 'pointer'
-                                }}
-                            >
-                                <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Baixar CSV
-                            </button>
-
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <label style={{ fontSize: '13px', color: '#666' }}>Filtrar período:</label>
-                                <select 
-                                    value={filtroPeriodo} 
-                                    onChange={(e) => setFiltroPeriodo(e.target.value)}
-                                    style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #ccc', background: '#fff' }}
-                                >
-                                    <option value="todos">Todos os registros</option>
-                                    <option value="semana">Última semana</option>
-                                    <option value="mes">Este mês</option>
-                                </select>
+                    {/* Barra de Filtros */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px', background: '#f8f9fa', padding: '15px', borderRadius: '8px' }}>
+                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '12px', color: '#666', marginBottom: '3px' }}>Data Início:</label>
+                                <input 
+                                    type="date" 
+                                    value={dataInicio} 
+                                    onChange={(e) => setDataInicio(e.target.value)}
+                                    style={{ padding: '6px 10px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '13px' }}
+                                />
                             </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '12px', color: '#666', marginBottom: '3px' }}>Data Fim:</label>
+                                <input 
+                                    type="date" 
+                                    value={dataFim} 
+                                    onChange={(e) => setDataFim(e.target.value)}
+                                    style={{ padding: '6px 10px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '13px' }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '12px', color: '#666', marginBottom: '3px' }}>ID da Rota:</label>
+                                <input 
+                                    type="number" 
+                                    placeholder="Ex: 1" 
+                                    value={rotaId} 
+                                    onChange={(e) => setRotaId(e.target.value)}
+                                    style={{ padding: '6px 10px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '13px', width: '90px' }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '12px', color: '#666', marginBottom: '3px' }}>ID do Motorista:</label>
+                                <input 
+                                    type="number" 
+                                    placeholder="Ex: 2" 
+                                    value={motoristaId} 
+                                    onChange={(e) => setMotoristaId(e.target.value)}
+                                    style={{ padding: '6px 10px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '13px', width: '90px' }}
+                                />
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+                            <button 
+                                onClick={() => carregarRelatorio(false)}
+                                style={{ padding: '8px 16px', background: '#0d6efd', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
+                            >
+                                Filtrar
+                            </button>
+                            <button 
+                                onClick={handleLimparFiltros}
+                                style={{ padding: '8px 16px', background: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}
+                            >
+                                Limpar
+                            </button>
                         </div>
                     </div>
 
                     {carregando ? (
-                        <p style={{ textAlign: 'center', padding: '20px', color: '#666' }}>A carregar histórico...</p>
-                    ) : historicoViagens.length === 0 ? (
-                        <p style={{ textAlign: 'center', padding: '20px', color: '#666' }}>Nenhum registro de viagem encontrado.</p>
+                        <p style={{ textAlign: 'center', padding: '20px', color: '#666' }}>Carregando histórico de rotas...</p>
+                    ) : registros.length === 0 ? (
+                        <p style={{ textAlign: 'center', padding: '20px', color: '#666' }}>Nenhum registro encontrado para os filtros selecionados.</p>
                     ) : (
                         <div style={{ overflowX: 'auto' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                                 <thead>
-                                    <tr style={{ borderBottom: '2px solid #eee', color: '#555', fontSize: '14px' }}>
-                                        <th style={{ padding: '12px' }}>Estudante</th>
-                                        <th style={{ padding: '12px' }}>Data e Hora</th>
-                                        <th style={{ padding: '12px' }}>Tipo de Evento</th>
-                                        <th style={{ padding: '12px' }}>Rota</th>
-                                        <th style={{ padding: '12px' }}>Motorista</th>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Turno</th>
+                                        <th>Rota</th>
+                                        <th>Motorista</th>
+                                        <th>Status</th>
+                                        <th>Início</th>
+                                        <th>Término</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
-                                    {historicoViagens.map((item) => (
-                                        <tr key={item.presenca_id || item.id} style={{ borderBottom: '1px solid #f1f1f1', fontSize: '14px' }}>
-                                            <td style={{ padding: '12px', fontWeight: '500' }}>{item.aluno_nome}</td>
-                                            <td style={{ padding: '12px' }}>{formatarDataHora(item.registrado_em)}</td>
-                                            <td style={{ padding: '12px' }}>
-                                                <span style={{ 
-                                                    background: '#d1e7dd', 
-                                                    color: '#0f5132', 
-                                                    padding: '4px 8px', 
-                                                    borderRadius: '4px', 
-                                                    fontSize: '12px', 
-                                                    fontWeight: 'bold' 
-                                                }}>
-                                                    {item.tipo}
-                                                </span>
+                                    {registros.map((item) => (
+                                        <tr key={item.viagem_id}>
+                                            <td>
+                                                {item.data
+                                                    ? new Date(item.data).toLocaleDateString('pt-BR', {
+                                                        timeZone: 'UTC'
+                                                    })
+                                                    : 'N/D'}
                                             </td>
-                                            <td style={{ padding: '12px' }}>{item.rota_nome}</td>
-                                            <td style={{ padding: '12px' }}>{item.motorista_nome || 'Não atribuído'}</td>
+
+                                            <td>{item.turno || 'N/D'}</td>
+
+                                            <td>
+                                                {item.rota_nome} (ID: {item.rota_id})
+                                            </td>
+
+                                            <td>{item.motorista_nome}</td>
+
+                                            <td>{item.status || 'N/D'}</td>
+
+                                            <td>
+                                                {item.iniciada_em
+                                                    ? new Date(item.iniciada_em).toLocaleString('pt-BR')
+                                                    : 'Não iniciada'}
+                                            </td>
+
+                                            <td>
+                                                {item.finalizada_em
+                                                    ? new Date(item.finalizada_em).toLocaleString('pt-BR')
+                                                    : 'Não finalizada'}
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
